@@ -24,6 +24,7 @@
         <ResourceInclude Source="/Strings/Strings.axaml"/>
         <ResourceInclude Source="/Colors/LightTheme.axaml"/>
         <ResourceInclude Source="/Colors/DarkTheme.axaml"/>
+        <ResourceInclude Source="/Colors/CustomTheme.axaml"/>
         <ResourceInclude Source="/Colors/Brushes.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>

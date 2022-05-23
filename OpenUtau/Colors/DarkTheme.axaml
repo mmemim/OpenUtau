@@ -5,7 +5,7 @@
   
   <Color x:Key="MainWindowColor">#303030</Color>
 
-  <Color x:Key="BackgroundColor">#303030</Color>
+  <Color x:Key="BackgroundColor">#d79081</Color>
   <Color x:Key="BackgroundColorPointerOver">#505050</Color>
   <Color x:Key="BackgroundColorPressed">#707070</Color>
   <Color x:Key="BackgroundColorDisabled">#404040</Color>

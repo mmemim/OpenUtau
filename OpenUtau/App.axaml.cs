@@ -68,12 +68,25 @@ namespace OpenUtau.App {
             var dark = Current.Resources.MergedDictionaries
                 .Select(res => (ResourceInclude)res)
                 .FirstOrDefault(d => d.Source!.OriginalString.Contains("DarkTheme"));
+            var custom = Current.Resources.MergedDictionaries
+                .Select(res => (ResourceInclude)res)
+                .FirstOrDefault(d => d.Source!.OriginalString.Contains("CustomTheme"));
+            var load = Current.Resources.MergedDictionaries
+                .Select(res => (ResourceInclude)res)
+                .FirstOrDefault(d => d.Source!.OriginalString.Contains("LoadCustomTheme"));
             if (Core.Util.Preferences.Default.Theme == 0) {
                 Current.Resources.MergedDictionaries.Remove(light);
                 Current.Resources.MergedDictionaries.Add(light);
-            } else {
+            }
+            else if (Core.Util.Preferences.Default.Theme == 1) {
                 Current.Resources.MergedDictionaries.Remove(dark);
                 Current.Resources.MergedDictionaries.Add(dark);
+            } else if (Core.Util.Preferences.Default.Theme == 2) {
+                Current.Resources.MergedDictionaries.Remove(custom);
+                Current.Resources.MergedDictionaries.Add(custom);
+            }else {
+                Current.Resources.MergedDictionaries.Remove(load);
+                Current.Resources.MergedDictionaries.Add(load);
             }
             ThemeManager.LoadTheme();
         }

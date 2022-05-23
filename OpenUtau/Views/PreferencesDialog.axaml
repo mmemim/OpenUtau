@@ -101,6 +101,8 @@
             <ComboBox HorizontalAlignment="Stretch" SelectedIndex="{Binding Theme}">
               <ComboBoxItem Content="{DynamicResource prefs.appearance.theme.light}"/>
               <ComboBoxItem Content="{DynamicResource prefs.appearance.theme.dark}"/>
+              <ComboBoxItem Content="{DynamicResource prefs.appearance.theme.custom}"/>
+              <ComboBoxItem Content="{DynamicResource prefs.appearance.theme.load}"/>
             </ComboBox>
             <TextBlock TextWrapping="Wrap" Text="{DynamicResource prefs.note.restart}" FontSize="11"/>
           </StackPanel>
