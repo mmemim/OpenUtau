@@ -9,7 +9,7 @@ namespace OpenUtau.Plugin.Builtin {
     [Phonemizer("French CVVC Phonemizer", "FR CVVC", "Mim", language: "FR")]
     // Contributed by Mim with the help of Heiden.BZR & nago's phonemizers
 
-    //This is a first implementation and I'm already working on optimization 
+    // This French CVVC+ phonemizer is compatible with Petit Mot, Gros Mot, Gyroflex and Fraloids reclists. It has VCV and VCCV support.
     public class FrenchCVVCPhonemizer : SyllableBasedPhonemizer {
 
         private readonly string[] vowels = "ah,ae,eh,ee,oe,ih,oh,oo,ou,uh,en,in,on,oi,ui,a,ai,e,i,o,u,eu".Split(",");
