@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,8 @@ using K4os.Hash.xxHash;
 using NAudio.Wave;
 using OpenUtau.Core;
 using OpenUtau.Core.Render;
+using OpenUtau.Core.Ustx;
+using static OpenUtau.Api.Phonemizer;
 
 namespace OpenUtau.Classic {
     public class ResamplerItem {
@@ -18,7 +21,7 @@ namespace OpenUtau.Classic {
         public string outputFile;
         public int tone;
 
-        public Tuple<string, int?>[] flags;
+        public Tuple<string, int?, string>[] flags;//flag, value, abbr
         public int velocity;
         public int volume;
         public int modulation;
@@ -46,7 +49,7 @@ namespace OpenUtau.Classic {
             inputTemp = VoicebankFiles.Inst.GetSourceTempPath(phrase.singer.Id, phone.oto, ".wav");
             tone = phone.tone;
 
-            flags = phone.flags;
+            flags = phone.flags.Where(flag => resampler.SupportsFlag(flag.Item3)).ToArray();
             velocity = (int)(phone.velocity * 100);
             volume = (int)(phone.volume * 100);
             modulation = (int)(phone.modulation * 100);
@@ -64,29 +67,42 @@ namespace OpenUtau.Classic {
             consonant = phone.oto.Consonant;
             cutoff = phone.oto.Cutoff;
 
-            int pitchLeading = phrase.timeAxis.TicksBetweenMsPos(phone.positionMs - pitchLeadingMs, phone.positionMs);
-            int pitchSkip = (phrase.leading + phone.position - pitchLeading) / 5;
-            int pitchCount = (int)Math.Ceiling(
-                (double)phrase.timeAxis.TicksBetweenMsPos(
-                    phone.positionMs - pitchLeadingMs,
-                    phone.positionMs + phone.envelope[4].X) / 5);
-            tempo = phone.tempo;
-            pitches = phrase.pitches
-                .Skip(pitchSkip)
-                .Take(pitchCount)
-                .Select(pitch => (int)Math.Round(pitch - phone.tone * 100))
-                .ToArray();
-            if (pitchSkip < 0) {
-                pitches = Enumerable.Repeat(pitches[0], -pitchSkip)
-                    .Concat(pitches)
-                    .ToArray();
+            tempo = phone.adjustedTempo;
+
+            double pitchCountMs = (phone.positionMs + phone.envelope[4].X) - (phone.positionMs - pitchLeadingMs);
+            int pitchCount = (int)Math.Ceiling(MusicMath.TempoMsToTick(tempo, pitchCountMs) / 5.0);
+            pitchCount = Math.Max(pitchCount, 0);
+            pitches = new int[pitchCount];
+
+            var phrasePitchStartMs = phrase.positionMs - phrase.leadingMs;
+            var phrasePitchStartTick = (int)Math.Floor(phrase.timeAxis.MsPosToNonExactTickPos(phrasePitchStartMs));
+
+            var pitchIntervalMs = MusicMath.TempoTickToMs(tempo, 5);
+            var pitchSampleStartMs = phone.positionMs - pitchLeadingMs;
+
+            for (int i=0; i<pitches.Length; i++) {
+                var samplePosMs = pitchSampleStartMs + pitchIntervalMs * i;
+                var samplePosTick = (int)Math.Floor(phrase.timeAxis.MsPosToNonExactTickPos(samplePosMs));
+
+                var sampleInterval = phrase.timeAxis.TickPosToMsPos(samplePosTick + 5) - phrase.timeAxis.TickPosToMsPos(samplePosTick);
+                var sampleIndex = (samplePosTick - phrasePitchStartTick) / 5.0;
+                sampleIndex = Math.Clamp(sampleIndex, 0, phrase.pitches.Length - 1);
+
+                var sampleStart = (int)Math.Floor(sampleIndex);
+                var sampleEnd = (int)Math.Ceiling(sampleIndex);
+
+                var diffPitchMs = samplePosMs - phrase.timeAxis.TickPosToMsPos(phrasePitchStartTick + sampleStart * 5);
+                var sampleAlpha = diffPitchMs / sampleInterval;
+
+                var sampleLerped = phrase.pitches[sampleStart] + (phrase.pitches[sampleEnd] - phrase.pitches[sampleStart]) * sampleAlpha;
+
+                pitches[i] = (int)Math.Round(sampleLerped - phone.tone * 100);
             }
 
             hash = Hash();
             outputFile = Path.Join(PathManager.Inst.CachePath,
                 $"res-{XXH32.DigestOf(Encoding.UTF8.GetBytes(phrase.singer.Id)):x8}-{hash:x16}.wav");
         }
-
         public string GetFlagsString() {
             var builder = new StringBuilder();
             foreach (var flag in flags) {

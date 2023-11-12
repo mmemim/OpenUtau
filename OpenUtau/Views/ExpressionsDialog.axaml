@@ -13,9 +13,13 @@
   <Design.DataContext>
     <vm:ExpressionsViewModel/>
   </Design.DataContext>
+  <Window.Styles>
+    <StyleInclude Source="/Styles/PianoRollStyles.axaml"/>
+  </Window.Styles>
+
   <Grid Margin="{Binding $parent.WindowDecorationMargin}">
     <Border Margin="10,10,10,40" Width="150" HorizontalAlignment="Left">
-      <ListBox Items="{Binding Expressions}" SelectedItem="{Binding Expression}">
+      <ListBox ItemsSource="{Binding Expressions}" SelectedItem="{Binding Expression}">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding}"/>
@@ -78,7 +82,11 @@
         <TextBlock Margin="140,24,0,4" Text="{DynamicResource exps.sepbycomma}"/>
       </Grid>
     </StackPanel>
-    <Button Margin="10" Width="80" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+      <Button Margin="10" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+            Content="{DynamicResource exps.getsuggestions}" Command="{Binding GetSuggestions}"/>
+      <Button Margin="10" Width="80" HorizontalAlignment="Right" VerticalAlignment="Bottom"
             Content="{DynamicResource exps.apply}" Click="ApplyButtonClicked"/>
+    </StackPanel>
   </Grid>
 </Window>
