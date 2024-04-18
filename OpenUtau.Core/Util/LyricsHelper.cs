@@ -34,7 +34,9 @@ namespace OpenUtau.Core.Util {
         public readonly List<Type> Available = new List<Type>() {
             typeof(HiraganaLyricsHelper),
             typeof(PinyinLyricsHelper),
+            typeof(JyutpingLyricsHelper),
             typeof(ArpabetG2pLyricsHelper),
+            typeof(ArpabetPlusG2pLyricsHelper),
             typeof(FrenchG2pLyricsHelper),
             typeof(GermanG2pLyricsHelper),
             typeof(ItalianG2pLyricsHelper),
@@ -54,7 +56,14 @@ namespace OpenUtau.Core.Util {
     public class PinyinLyricsHelper : ILyricsHelper {
         public string Source => "汉->han";
         public string Convert(string lyric) {
-            return TinyPinyin.PinyinHelper.GetPinyin(lyric).ToLowerInvariant();
+            return ZhG2p.MandarinInstance.Convert(lyric, false, true);
+        }
+    }
+
+    public class JyutpingLyricsHelper : ILyricsHelper {
+        public string Source => "粤->jyut";
+        public string Convert(string lyric) {
+            return ZhG2p.CantoneseInstance.Convert(lyric, false, true);
         }
     }
 
@@ -75,6 +84,9 @@ namespace OpenUtau.Core.Util {
 
     public class ArpabetG2pLyricsHelper : G2pLyricsHelper {
         public ArpabetG2pLyricsHelper() : base(new ArpabetG2p()) { }
+    }
+    public class ArpabetPlusG2pLyricsHelper : G2pLyricsHelper {
+        public ArpabetPlusG2pLyricsHelper() : base(new ArpabetPlusG2p()) { }
     }
 
     public class FrenchG2pLyricsHelper : G2pLyricsHelper {

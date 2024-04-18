@@ -87,6 +87,7 @@ namespace OpenUtau.App.ViewModels {
                         }
                     }
                     Preferences.Save();
+                    MessageBus.Current.SendMessage(new PianorollRefreshEvent("Part"));
                 }
                 this.RaisePropertyChanged(nameof(Singer));
                 this.RaisePropertyChanged(nameof(Renderer));
@@ -247,18 +248,30 @@ namespace OpenUtau.App.ViewModels {
             items.AddRange(Preferences.Default.RecentSingers
                 .Select(id => SingerManager.Inst.Singers.Values.FirstOrDefault(singer => singer.Id == id))
                 .OfType<USinger>()
-                .LocalizedOrderBy(singer => singer.LocalizedName)
-                .Select(singer => new MenuItemViewModel() {
+                .Select(singer => new SingerMenuItemViewModel() {
                     Header = singer.LocalizedName,
                     Command = SelectSingerCommand,
                     CommandParameter = singer,
                 }));
+            items.Add(new SingerMenuItemViewModel() {
+                Header = "Favourites ...",
+                Items = Preferences.Default.FavoriteSingers
+                    .Select(id => SingerManager.Inst.Singers.Values.FirstOrDefault(singer => singer.Id == id))
+                    .OfType<USinger>()
+                    .LocalizedOrderBy(singer => singer.LocalizedName)
+                    .Select(singer => new SingerMenuItemViewModel() {
+                        Header = singer.LocalizedName,
+                        Command = SelectSingerCommand,
+                        CommandParameter = singer,
+                    }).ToArray(),
+            });
+
             var keys = SingerManager.Inst.SingerGroups.Keys.OrderBy(k => k);
             foreach (var key in keys) {
-                items.Add(new MenuItemViewModel() {
+                items.Add(new SingerMenuItemViewModel() {
                     Header = $"{key} ...",
                     Items = SingerManager.Inst.SingerGroups[key]
-                        .Select(singer => new MenuItemViewModel() {
+                        .Select(singer => new SingerMenuItemViewModel() {
                             Header = singer.LocalizedName,
                             Command = SelectSingerCommand,
                             CommandParameter = singer,
@@ -267,6 +280,16 @@ namespace OpenUtau.App.ViewModels {
             }
             SingerMenuItems = items;
             this.RaisePropertyChanged(nameof(SingerMenuItems));
+        }
+
+        public string GetPhonemizerGroupHeader(string key){
+            if(key is null){
+                return "General";
+            }
+            if(ThemeManager.TryGetString($"languages.{key.ToLowerInvariant()}", out var value)){
+                return $"{key}: {value}";
+            }
+            return key;
         }
 
         public void RefreshPhonemizers() {
@@ -287,7 +310,7 @@ namespace OpenUtau.App.ViewModels {
                 Items = DocManager.Inst.PhonemizerFactories.GroupBy(factory => factory.language)
                 .OrderBy(group => group.Key)
                 .Select(group => new MenuItemViewModel() {
-                    Header = (group.Key is null) ? "General" : group.Key,
+                    Header = GetPhonemizerGroupHeader(group.Key),
                     Items = group.Select(factory => new MenuItemViewModel() {
                         Header = factory.ToString(),
                         Command = SelectPhonemizerCommand,
@@ -407,7 +430,7 @@ namespace OpenUtau.App.ViewModels {
                 RendererSettings = track.RendererSettings,
                 Mute = track.Mute,
                 Muted = track.Muted,
-                Solo = track.Solo,
+                Solo = false,
                 Volume = track.Volume,
                 Pan = track.Pan,
                 TrackColor = track.TrackColor
@@ -433,7 +456,7 @@ namespace OpenUtau.App.ViewModels {
                 RendererSettings = track.RendererSettings,
                 Mute = track.Mute,
                 Muted = track.Muted,
-                Solo = track.Solo,
+                Solo = false,
                 Volume = track.Volume,
                 Pan = track.Pan,
                 TrackColor = track.TrackColor
